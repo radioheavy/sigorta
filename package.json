@@ -1,23 +1,50 @@
 {
-  "name": "sigorta",
-  "version": "0.1.0",
-  "private": true,
+  "name": "kfz-versicherung-vergleich",
+  "version": "1.0.0",
+  "description": "Anonim KFZ sigortası karşılaştırma platformu — DSGVO uyumlu, brutalist tasarım",
+  "author": "KFZ Vergleich",
+  "license": "MIT",
+  "keywords": [
+    "kfz",
+    "versicherung",
+    "vergleich",
+    "insurance",
+    "comparison",
+    "nextjs",
+    "brutalist",
+    "dsgvo"
+  ],
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "npx prisma generate",
+    "db:migrate": "npx prisma migrate dev",
+    "db:seed": "npx tsx prisma/seed.ts",
+    "db:studio": "npx prisma studio",
+    "db:reset": "npx prisma migrate reset",
+    "postinstall": "npx prisma generate"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "ioredis": "^5.9.2",
+    "iron-session": "^8.0.4",
+    "nanoid": "^3.3.11",
     "next": "16.1.6",
+    "pg": "^8.18.0",
+    "prisma": "^7.3.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.4",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",

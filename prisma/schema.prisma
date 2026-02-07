@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum InsuranceType {
+  HAFTPFLICHT
+  TEILKASKO
+  VOLLKASKO
+}
+
+enum EngineType {
+  BENZIN
+  DIESEL
+  ELEKTRO
+  HYBRID
+  PLUGIN_HYBRID
+  LPG
+  CNG
+}
+
+enum ContactChannel {
+  WHATSAPP
+  TELEGRAM
+  WEB_MESSENGER
+  EMAIL
+  PHONE
+}
+
+enum ContactStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model VehicleMake {
+  id        String         @id @default(cuid())
+  name      String         @unique
+  models    VehicleModel[]
+  createdAt DateTime       @default(now())
+
+  @@map("vehicle_makes")
+}
+
+model VehicleModel {
+  id        String      @id @default(cuid())
+  name      String
+  hsn       String?
+  tsn       String?
+  yearFrom  Int?
+  yearTo    Int?
+  makeId    String
+  make      VehicleMake @relation(fields: [makeId], references: [id])
+  createdAt DateTime    @default(now())
+
+  @@unique([hsn, tsn])
+  @@index([makeId])
+  @@index([hsn, tsn])
+  @@map("vehicle_models")
+}
+
+model Session {
+  id              String           @id @default(cuid())
+  trackingId      String           @unique
+  vehicleData     Json?
+  driverData      Json?
+  insuranceType   InsuranceType?
+  expiresAt       DateTime
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  tariffQueries   TariffQuery[]
+  contactRequests ContactRequest[]
+  messages        Message[]
+  auditLogs       AuditLog[]
+
+  @@index([trackingId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model TariffQuery {
+  id            String         @id @default(cuid())
+  sessionId     String
+  session       Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  vehicleData   Json
+  driverData    Json
+  insuranceType InsuranceType
+  deductible    Int            @default(0)
+  cacheKey      String?
+  results       TariffResult[]
+  createdAt     DateTime       @default(now())
+
+  @@index([sessionId])
+  @@index([cacheKey])
+  @@map("tariff_queries")
+}
+
+model TariffResult {
+  id              String          @id @default(cuid())
+  queryId         String
+  query           TariffQuery     @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  provider        String
+  productName     String
+  monthlyPrice    Float
+  yearlyPrice     Float
+  coverage        Json
+  rating          Float?
+  sourceAdapter   String
+  contactRequests ContactRequest[]
+  createdAt       DateTime        @default(now())
+
+  @@index([queryId])
+  @@map("tariff_results")
+}
+
+model ContactRequest {
+  id           String        @id @default(cuid())
+  sessionId    String
+  session      Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tariffId     String?
+  tariff       TariffResult? @relation(fields: [tariffId], references: [id])
+  channel      ContactChannel
+  message      String?
+  status       ContactStatus @default(PENDING)
+  webhookSent  Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([sessionId])
+  @@map("contact_requests")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sender    String   // "user" or "advisor"
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  trackingId String
+  sessionId  String?
+  session    Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  action     String
+  details    Json?
+  ipHash     String?
+  createdAt  DateTime @default(now())
+
+  @@index([trackingId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model ConsentRecord {
+  id         String   @id @default(cuid())
+  trackingId String
+  necessary  Boolean  @default(true)
+  functional Boolean  @default(false)
+  analytics  Boolean  @default(false)
+  ipHash     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([trackingId])
+  @@map("consent_records")
+}
