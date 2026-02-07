@@ -5,15 +5,20 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json prisma.config.ts ./
 COPY prisma ./prisma/
-RUN npm ci
+# Dummy URL for prisma generate (no actual DB connection needed)
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+RUN npm ci --ignore-scripts
+RUN npx prisma generate
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Copy generated prisma client
+COPY --from=deps /app/src/generated ./src/generated
 
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
