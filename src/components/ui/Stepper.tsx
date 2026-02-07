@@ -11,11 +11,12 @@ interface Step {
 interface StepperProps {
   steps: Step[];
   currentStep: number;
+  ariaLabel?: string;
 }
 
-export default function Stepper({ steps, currentStep }: StepperProps) {
+export default function Stepper({ steps, currentStep, ariaLabel = "Fortschritt" }: StepperProps) {
   return (
-    <nav aria-label="Fortschritt" className="w-full">
+    <nav aria-label={ariaLabel} className="w-full">
       <ol className="flex items-center">
         {steps.map((step, index) => (
           <li key={step.number} className="flex items-center flex-1">

@@ -12,6 +12,7 @@ import {
   buildWhatsAppURL,
   buildTelegramURL,
 } from "@/services/contact/message-builder";
+import type { Dictionary } from "@/i18n";
 
 interface TariffInfo {
   id: string;
@@ -32,17 +33,17 @@ interface SessionInfo {
 
 interface ContactPanelProps {
   tariffId: string;
+  dict: Dictionary;
 }
 
-export default function ContactPanel({ tariffId }: ContactPanelProps) {
+export default function ContactPanel({ tariffId, dict }: ContactPanelProps) {
   const [tariff, setTariff] = useState<TariffInfo | null>(null);
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
-  const [activeTab, setActiveTab] = useState<
-    "channels" | "messenger"
-  >("channels");
+  const [activeTab, setActiveTab] = useState<"channels" | "messenger">("channels");
+  const t = dict.contact;
+  const mb = dict.messageBuilder;
 
   useEffect(() => {
-    // Fetch session info
     fetch("/api/session")
       .then((res) => res.json())
       .then((data) => setSessionInfo(data))
@@ -50,16 +51,19 @@ export default function ContactPanel({ tariffId }: ContactPanelProps) {
   }, []);
 
   const message = sessionInfo
-    ? buildContactMessage({
-        trackingId: sessionInfo.trackingId || "N/A",
-        vehicleName: sessionInfo.vehicleData
-          ? `${sessionInfo.vehicleData.makeName} ${sessionInfo.vehicleData.modelName}`
-          : undefined,
-        insuranceType: sessionInfo.insuranceType,
-        provider: tariff?.provider,
-        productName: tariff?.productName,
-        monthlyPrice: tariff?.monthlyPrice,
-      })
+    ? buildContactMessage(
+        {
+          trackingId: sessionInfo.trackingId || "N/A",
+          vehicleName: sessionInfo.vehicleData
+            ? `${sessionInfo.vehicleData.makeName} ${sessionInfo.vehicleData.modelName}`
+            : undefined,
+          insuranceType: sessionInfo.insuranceType,
+          provider: tariff?.provider,
+          productName: tariff?.productName,
+          monthlyPrice: tariff?.monthlyPrice,
+        },
+        mb
+      )
     : "";
 
   const whatsappUrl = buildWhatsAppURL(
@@ -92,7 +96,7 @@ export default function ContactPanel({ tariffId }: ContactPanelProps) {
       <div className="lg:col-span-1">
         <Card accent className="p-6">
           <h3 className="font-bold uppercase text-xs tracking-wider mb-4 border-b-2 border-black pb-2">
-            Ausgewählter Tarif
+            {t.selectedTariff}
           </h3>
           {tariff ? (
             <>
@@ -101,19 +105,18 @@ export default function ContactPanel({ tariffId }: ContactPanelProps) {
               <p className="text-2xl font-black mt-2 text-accent">
                 {formatPriceShort(tariff.monthlyPrice)}
               </p>
-              <p className="text-[10px] text-gray-400 uppercase">pro Monat</p>
+              <p className="text-[10px] text-gray-400 uppercase">{dict.tariff.perMonth}</p>
             </>
           ) : (
             <p className="text-xs text-gray-500">
-              Kein Tarif ausgewählt. Sie können trotzdem einen Berater
-              kontaktieren.
+              {t.noTariff}
             </p>
           )}
 
           {sessionInfo && (
             <div className="mt-4 pt-4 border-t-2 border-black">
               <p className="text-[10px] uppercase tracking-wider text-gray-500 mb-2">
-                Session-Info
+                {t.sessionInfo}
               </p>
               <Badge variant="default">{sessionInfo.trackingId}</Badge>
               {sessionInfo.insuranceType && (
@@ -138,7 +141,7 @@ export default function ContactPanel({ tariffId }: ContactPanelProps) {
                 : "bg-white"
             }`}
           >
-            WhatsApp / Telegram
+            {t.channelsTab}
           </button>
           <button
             onClick={() => setActiveTab("messenger")}
@@ -148,7 +151,7 @@ export default function ContactPanel({ tariffId }: ContactPanelProps) {
                 : "bg-white"
             }`}
           >
-            Web Messenger
+            {t.messengerTab}
           </button>
         </div>
 
@@ -156,7 +159,7 @@ export default function ContactPanel({ tariffId }: ContactPanelProps) {
           <div className="space-y-4">
             <div className="border-4 border-black p-6">
               <h3 className="font-bold uppercase text-xs tracking-wider mb-4">
-                Kontaktkanal wählen
+                {t.chooseChannel}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <WhatsAppButton
@@ -172,15 +175,15 @@ export default function ContactPanel({ tariffId }: ContactPanelProps) {
 
             <div className="border-4 border-black p-6 bg-gray-50">
               <h3 className="font-bold uppercase text-xs tracking-wider mb-2">
-                Vorausgefüllte Nachricht
+                {t.prefilledMessage}
               </h3>
               <pre className="text-xs whitespace-pre-wrap text-gray-600 bg-white border-2 border-black p-4">
-                {message || "Laden..."}
+                {message || t.loadingMessage}
               </pre>
             </div>
           </div>
         ) : (
-          <WebMessenger />
+          <WebMessenger dict={dict} />
         )}
       </div>
     </div>

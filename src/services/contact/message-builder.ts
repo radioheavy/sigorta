@@ -7,33 +7,56 @@ interface MessageContext {
   productName?: string;
 }
 
-export function buildContactMessage(ctx: MessageContext): string {
+interface MessageLabels {
+  greeting: string;
+  vehicleLabel: string;
+  insuranceTypeLabel: string;
+  offerLabel: string;
+  monthlyPriceLabel: string;
+  contactRequest: string;
+}
+
+const DEFAULT_LABELS: MessageLabels = {
+  greeting: "Hallo, ich interessiere mich für eine KFZ-Versicherung.",
+  vehicleLabel: "Fahrzeug",
+  insuranceTypeLabel: "Versicherungsart",
+  offerLabel: "Angebot",
+  monthlyPriceLabel: "Monatspreis",
+  contactRequest: "Bitte kontaktieren Sie mich für weitere Informationen.",
+};
+
+export function buildContactMessage(
+  ctx: MessageContext,
+  labels?: MessageLabels
+): string {
+  const t = labels || DEFAULT_LABELS;
+
   const lines = [
-    `Hallo, ich interessiere mich für eine KFZ-Versicherung.`,
+    t.greeting,
     ``,
     `Tracking-ID: ${ctx.trackingId}`,
   ];
 
   if (ctx.vehicleName) {
-    lines.push(`Fahrzeug: ${ctx.vehicleName}`);
+    lines.push(`${t.vehicleLabel}: ${ctx.vehicleName}`);
   }
 
   if (ctx.insuranceType) {
-    lines.push(`Versicherungsart: ${ctx.insuranceType}`);
+    lines.push(`${t.insuranceTypeLabel}: ${ctx.insuranceType}`);
   }
 
   if (ctx.provider && ctx.productName) {
-    lines.push(`Angebot: ${ctx.provider} - ${ctx.productName}`);
+    lines.push(`${t.offerLabel}: ${ctx.provider} - ${ctx.productName}`);
   }
 
   if (ctx.monthlyPrice) {
     lines.push(
-      `Monatspreis: ${ctx.monthlyPrice.toFixed(2).replace(".", ",")} €`
+      `${t.monthlyPriceLabel}: ${ctx.monthlyPrice.toFixed(2).replace(".", ",")} €`
     );
   }
 
   lines.push(``);
-  lines.push(`Bitte kontaktieren Sie mich für weitere Informationen.`);
+  lines.push(t.contactRequest);
 
   return lines.join("\n");
 }

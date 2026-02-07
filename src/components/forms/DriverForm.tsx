@@ -5,18 +5,26 @@ import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
+import type { Dictionary } from "@/i18n";
 
-const SF_KLASSEN = [
-  { value: "SF0", label: "SF 0 (Anfänger)" },
-  { value: "SF1/2", label: "SF ½" },
-  ...Array.from({ length: 36 }, (_, i) => ({
-    value: `SF${i + 1}`,
-    label: `SF ${i + 1}`,
-  })),
-];
+interface DriverFormProps {
+  lang: string;
+  dict: Dictionary;
+}
 
-export default function DriverForm() {
+export default function DriverForm({ lang, dict }: DriverFormProps) {
   const router = useRouter();
+  const t = dict.driver;
+
+  const SF_KLASSEN = [
+    { value: "SF0", label: t.sfClassBeginner },
+    { value: "SF1/2", label: "SF ½" },
+    ...Array.from({ length: 36 }, (_, i) => ({
+      value: `SF${i + 1}`,
+      label: `SF ${i + 1}`,
+    })),
+  ];
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -32,11 +40,11 @@ export default function DriverForm() {
     const exp = Number(formData.experienceYears);
 
     if (!formData.age || age < 18 || age > 99)
-      newErrors.age = "Alter: 18–99 Jahre";
+      newErrors.age = t.errorAge;
     if (formData.experienceYears === "" || exp < 0 || exp > 80)
-      newErrors.experienceYears = "Erfahrung: 0–80 Jahre";
+      newErrors.experienceYears = t.errorExperience;
     if (!formData.sfKlasse)
-      newErrors.sfKlasse = "SF-Klasse ist erforderlich";
+      newErrors.sfKlasse = t.errorSfClass;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -61,12 +69,12 @@ export default function DriverForm() {
       });
 
       if (res.ok) {
-        router.push("/ergebnis");
+        router.push(`/${lang}/ergebnis`);
       } else {
-        setErrors({ form: "Fehler beim Speichern" });
+        setErrors({ form: t.errorSave });
       }
     } catch {
-      setErrors({ form: "Netzwerkfehler" });
+      setErrors({ form: t.errorNetwork });
     } finally {
       setLoading(false);
     }
@@ -88,7 +96,7 @@ export default function DriverForm() {
       <div className="border-4 border-black p-6 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Input
-            label="Alter"
+            label={t.age}
             type="number"
             value={formData.age}
             onChange={(e) => update("age", e.target.value)}
@@ -98,7 +106,7 @@ export default function DriverForm() {
             error={errors.age}
           />
           <Input
-            label="Fahrerfahrung (Jahre)"
+            label={t.experience}
             type="number"
             value={formData.experienceYears}
             onChange={(e) => update("experienceYears", e.target.value)}
@@ -108,11 +116,11 @@ export default function DriverForm() {
             error={errors.experienceYears}
           />
           <Select
-            label="SF-Klasse"
+            label={t.sfClass}
             value={formData.sfKlasse}
             onChange={(e) => update("sfKlasse", e.target.value)}
             options={SF_KLASSEN}
-            placeholder="Wählen"
+            placeholder={dict.common.select}
             error={errors.sfKlasse}
           />
         </div>
@@ -120,13 +128,10 @@ export default function DriverForm() {
 
       <div className="border-4 border-black p-6 bg-gray-50">
         <p className="text-xs font-bold uppercase tracking-wider mb-2">
-          Info: SF-Klasse
+          {t.sfInfoTitle}
         </p>
         <p className="text-xs text-gray-600 leading-relaxed">
-          Die Schadenfreiheitsklasse (SF-Klasse) bestimmt Ihren
-          Versicherungsbeitrag. SF0 = Anfänger, SF35 = 35 schadenfreie
-          Jahre. Die SF-Klasse finden Sie auf Ihrer aktuellen
-          Versicherungspolice.
+          {t.sfInfoText}
         </p>
       </div>
 
@@ -142,12 +147,12 @@ export default function DriverForm() {
         <Button
           type="button"
           variant="secondary"
-          onClick={() => router.push("/fahrzeug")}
+          onClick={() => router.push(`/${lang}/fahrzeug`)}
         >
-          ← Zurück
+          {t.back}
         </Button>
         <Button type="submit" variant="accent" size="lg" disabled={loading}>
-          {loading ? "Wird gespeichert..." : "Tarife vergleichen →"}
+          {loading ? dict.common.saving : t.submit}
         </Button>
       </div>
     </form>

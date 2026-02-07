@@ -4,6 +4,7 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { formatPriceShort } from "@/lib/utils";
+import type { Dictionary } from "@/i18n";
 
 interface TariffCardProps {
   id: string;
@@ -13,18 +14,9 @@ interface TariffCardProps {
   yearlyPrice: number;
   coverage: Record<string, boolean>;
   rating: number | null;
+  lang: string;
+  dict: Dictionary;
 }
-
-const COVERAGE_LABELS: Record<string, string> = {
-  haftpflicht: "Haftpflicht",
-  teilkasko: "Teilkasko",
-  vollkasko: "Vollkasko",
-  schutzbrief: "Schutzbrief",
-  mallorca_police: "Mallorca-Police",
-  rabattschutz: "Rabattschutz",
-  werkstattbindung: "Werkstattbindung",
-  gapDeckung: "GAP-Deckung",
-};
 
 export default function TariffCard({
   id,
@@ -34,7 +26,22 @@ export default function TariffCard({
   yearlyPrice,
   coverage,
   rating,
+  lang,
+  dict,
 }: TariffCardProps) {
+  const t = dict.tariff;
+
+  const COVERAGE_LABELS: Record<string, string> = {
+    haftpflicht: t.coverageHaftpflicht,
+    teilkasko: t.coverageTeilkasko,
+    vollkasko: t.coverageVollkasko,
+    schutzbrief: t.coverageSchutzbrief,
+    mallorca_police: t.coverageMallorca,
+    rabattschutz: t.coverageRabattschutz,
+    werkstattbindung: t.coverageWerkstatt,
+    gapDeckung: t.coverageGap,
+  };
+
   return (
     <div className="border-4 border-black bg-white hover:border-accent transition-colors">
       {/* Header */}
@@ -49,7 +56,7 @@ export default function TariffCard({
           <div className="text-right">
             <p className="text-2xl font-black">{rating.toFixed(1)}</p>
             <p className="text-[10px] uppercase tracking-wider text-gray-500">
-              Rating
+              {t.rating}
             </p>
           </div>
         )}
@@ -63,13 +70,13 @@ export default function TariffCard({
               {formatPriceShort(monthlyPrice)}
             </p>
             <p className="text-[10px] uppercase tracking-wider text-gray-400">
-              pro Monat
+              {t.perMonth}
             </p>
           </div>
           <div className="text-right">
             <p className="text-sm font-bold">{formatPriceShort(yearlyPrice)}</p>
             <p className="text-[10px] uppercase tracking-wider text-gray-400">
-              pro Jahr
+              {t.perYear}
             </p>
           </div>
         </div>
@@ -78,7 +85,7 @@ export default function TariffCard({
       {/* Coverage */}
       <div className="p-4 border-b-4 border-black">
         <p className="text-[10px] uppercase tracking-wider font-bold mb-2">
-          Leistungen
+          {t.coverage}
         </p>
         <div className="flex flex-wrap gap-1">
           {Object.entries(coverage).map(([key, value]) =>
@@ -93,9 +100,9 @@ export default function TariffCard({
 
       {/* Action */}
       <div className="p-4">
-        <Link href={`/kontakt?tariffId=${id}`} className="block">
+        <Link href={`/${lang}/kontakt?tariffId=${id}`} className="block">
           <Button variant="accent" className="w-full">
-            Auswählen
+            {t.select}
           </Button>
         </Link>
       </div>

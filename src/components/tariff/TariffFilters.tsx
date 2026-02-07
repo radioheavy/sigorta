@@ -2,6 +2,7 @@
 
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
+import type { Dictionary } from "@/i18n";
 
 interface Filters {
   maxPrice: number;
@@ -13,21 +14,25 @@ interface TariffFiltersProps {
   filters: Filters;
   onFilterChange: (filters: Filters) => void;
   providers: string[];
+  dict: Dictionary;
 }
 
 export default function TariffFilters({
   filters,
   onFilterChange,
   providers,
+  dict,
 }: TariffFiltersProps) {
+  const t = dict.filters;
+
   return (
     <div className="border-4 border-black p-4 space-y-4 sticky top-4">
       <h3 className="font-bold uppercase text-xs tracking-wider border-b-2 border-black pb-2">
-        Filter
+        {t.title}
       </h3>
 
       <Select
-        label="Sortierung"
+        label={t.sort}
         value={filters.sortBy}
         onChange={(e) =>
           onFilterChange({
@@ -36,14 +41,14 @@ export default function TariffFilters({
           })
         }
         options={[
-          { value: "price_asc", label: "Preis aufsteigend" },
-          { value: "price_desc", label: "Preis absteigend" },
-          { value: "rating", label: "Bewertung" },
+          { value: "price_asc", label: t.priceAsc },
+          { value: "price_desc", label: t.priceDesc },
+          { value: "rating", label: t.byRating },
         ]}
       />
 
       <Input
-        label="Max. Preis / Monat (€)"
+        label={t.maxPrice}
         type="number"
         value={filters.maxPrice}
         onChange={(e) =>
@@ -57,13 +62,13 @@ export default function TariffFilters({
       />
 
       <Select
-        label="Anbieter"
+        label={t.provider}
         value={filters.provider}
         onChange={(e) =>
           onFilterChange({ ...filters, provider: e.target.value })
         }
         options={[
-          { value: "", label: "Alle Anbieter" },
+          { value: "", label: t.allProviders },
           ...providers.map((p) => ({ value: p, label: p })),
         ]}
       />

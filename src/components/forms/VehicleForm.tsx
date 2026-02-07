@@ -6,6 +6,7 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import InsuranceTypeSelector from "./InsuranceTypeSelector";
+import type { Dictionary } from "@/i18n";
 
 interface Make {
   id: string;
@@ -18,16 +19,6 @@ interface Model {
   hsn: string | null;
   tsn: string | null;
 }
-
-const ENGINE_TYPES = [
-  { value: "BENZIN", label: "Benzin" },
-  { value: "DIESEL", label: "Diesel" },
-  { value: "ELEKTRO", label: "Elektro" },
-  { value: "HYBRID", label: "Hybrid" },
-  { value: "PLUGIN_HYBRID", label: "Plug-in Hybrid" },
-  { value: "LPG", label: "LPG" },
-  { value: "CNG", label: "CNG" },
-];
 
 const DEDUCTIBLE_OPTIONS = [
   { value: "0", label: "0 €" },
@@ -43,8 +34,25 @@ const YEARS = Array.from({ length: 36 }, (_, i) => {
   return { value: String(year), label: String(year) };
 });
 
-export default function VehicleForm() {
+interface VehicleFormProps {
+  lang: string;
+  dict: Dictionary;
+}
+
+export default function VehicleForm({ lang, dict }: VehicleFormProps) {
   const router = useRouter();
+  const t = dict.vehicle;
+
+  const ENGINE_TYPES = [
+    { value: "BENZIN", label: t.engineBenzin },
+    { value: "DIESEL", label: t.engineDiesel },
+    { value: "ELEKTRO", label: t.engineElektro },
+    { value: "HYBRID", label: t.engineHybrid },
+    { value: "PLUGIN_HYBRID", label: t.enginePluginHybrid },
+    { value: "LPG", label: t.engineLPG },
+    { value: "CNG", label: t.engineCNG },
+  ];
+
   const [mode, setMode] = useState<"manual" | "hsn">("manual");
   const [makes, setMakes] = useState<Make[]>([]);
   const [models, setModels] = useState<Model[]>([]);
@@ -83,7 +91,7 @@ export default function VehicleForm() {
 
   const handleHSNLookup = async () => {
     if (formData.hsn.length < 4 || formData.tsn.length < 3) {
-      setErrors({ hsn: "HSN (4 Stellen) und TSN (3 Stellen) eingeben" });
+      setErrors({ hsn: t.errorHsnFormat });
       return;
     }
     setLoading(true);
@@ -100,10 +108,10 @@ export default function VehicleForm() {
         }));
         setErrors({});
       } else {
-        setErrors({ hsn: "Fahrzeug nicht gefunden" });
+        setErrors({ hsn: t.errorHsnNotFound });
       }
     } catch {
-      setErrors({ hsn: "Fehler bei der Suche" });
+      setErrors({ hsn: t.errorHsnSearch });
     } finally {
       setLoading(false);
     }
@@ -111,15 +119,12 @@ export default function VehicleForm() {
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!formData.makeId) newErrors.makeId = "Marke ist erforderlich";
-    if (!formData.modelId) newErrors.modelId = "Modell ist erforderlich";
-    if (!formData.year) newErrors.year = "Baujahr ist erforderlich";
-    if (!formData.engineType)
-      newErrors.engineType = "Antriebsart ist erforderlich";
-    if (!formData.registrationDate)
-      newErrors.registrationDate = "Erstzulassung ist erforderlich";
-    if (!formData.insuranceType)
-      newErrors.insuranceType = "Versicherungsart ist erforderlich";
+    if (!formData.makeId) newErrors.makeId = t.errorMake;
+    if (!formData.modelId) newErrors.modelId = t.errorModel;
+    if (!formData.year) newErrors.year = t.errorYear;
+    if (!formData.engineType) newErrors.engineType = t.errorEngine;
+    if (!formData.registrationDate) newErrors.registrationDate = t.errorRegistration;
+    if (!formData.insuranceType) newErrors.insuranceType = t.errorInsurance;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -154,12 +159,12 @@ export default function VehicleForm() {
       });
 
       if (res.ok) {
-        router.push("/fahrer");
+        router.push(`/${lang}/fahrer`);
       } else {
-        setErrors({ form: "Fehler beim Speichern. Bitte versuchen Sie es erneut." });
+        setErrors({ form: t.errorSave });
       }
     } catch {
-      setErrors({ form: "Netzwerkfehler. Bitte versuchen Sie es erneut." });
+      setErrors({ form: t.errorNetwork });
     } finally {
       setLoading(false);
     }
@@ -187,7 +192,7 @@ export default function VehicleForm() {
             mode === "manual" ? "bg-black text-white" : "bg-white"
           }`}
         >
-          Manuelle Eingabe
+          {t.manualEntry}
         </button>
         <button
           type="button"
@@ -196,18 +201,18 @@ export default function VehicleForm() {
             mode === "hsn" ? "bg-black text-white" : "bg-white"
           }`}
         >
-          HSN / TSN
+          {t.hsnTsn}
         </button>
       </div>
 
       {mode === "hsn" && (
         <div className="border-4 border-black p-6 space-y-4">
           <p className="text-xs text-gray-600 uppercase tracking-wider">
-            Die HSN/TSN finden Sie in Ihrem Fahrzeugschein (Zulassungsbescheinigung Teil I).
+            {t.hsnInfo}
           </p>
           <div className="flex gap-4">
             <Input
-              label="HSN (4-stellig)"
+              label={t.hsnLabel}
               value={formData.hsn}
               onChange={(e) => update("hsn", e.target.value.toUpperCase())}
               maxLength={4}
@@ -215,7 +220,7 @@ export default function VehicleForm() {
               error={errors.hsn}
             />
             <Input
-              label="TSN (3-stellig)"
+              label={t.tsnLabel}
               value={formData.tsn}
               onChange={(e) => update("tsn", e.target.value.toUpperCase())}
               maxLength={3}
@@ -228,7 +233,7 @@ export default function VehicleForm() {
             onClick={handleHSNLookup}
             disabled={loading}
           >
-            {loading ? "Suche..." : "Fahrzeug suchen"}
+            {loading ? dict.common.searching : t.searchVehicle}
           </Button>
         </div>
       )}
@@ -237,22 +242,22 @@ export default function VehicleForm() {
       <div className="border-4 border-black p-6 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Select
-            label="Marke"
+            label={t.make}
             value={formData.makeId}
             onChange={(e) => {
               update("makeId", e.target.value);
               update("modelId", "");
             }}
             options={makes.map((m) => ({ value: m.id, label: m.name }))}
-            placeholder="Marke wählen"
+            placeholder={t.makePlaceholder}
             error={errors.makeId}
           />
           <Select
-            label="Modell"
+            label={t.model}
             value={formData.modelId}
             onChange={(e) => update("modelId", e.target.value)}
             options={models.map((m) => ({ value: m.id, label: m.name }))}
-            placeholder="Modell wählen"
+            placeholder={t.modelPlaceholder}
             disabled={!formData.makeId}
             error={errors.modelId}
           />
@@ -260,23 +265,23 @@ export default function VehicleForm() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Select
-            label="Baujahr"
+            label={t.year}
             value={formData.year}
             onChange={(e) => update("year", e.target.value)}
             options={YEARS}
-            placeholder="Wählen"
+            placeholder={dict.common.select}
             error={errors.year}
           />
           <Select
-            label="Antriebsart"
+            label={t.engineType}
             value={formData.engineType}
             onChange={(e) => update("engineType", e.target.value)}
             options={ENGINE_TYPES}
-            placeholder="Wählen"
+            placeholder={dict.common.select}
             error={errors.engineType}
           />
           <Input
-            label="Erstzulassung"
+            label={t.registrationDate}
             type="month"
             value={formData.registrationDate}
             onChange={(e) => update("registrationDate", e.target.value)}
@@ -290,13 +295,14 @@ export default function VehicleForm() {
         value={formData.insuranceType}
         onChange={(v) => update("insuranceType", v)}
         error={errors.insuranceType}
+        dict={dict}
       />
 
       {/* Deductible */}
       {formData.insuranceType &&
         formData.insuranceType !== "HAFTPFLICHT" && (
           <Select
-            label="Selbstbeteiligung"
+            label={t.deductible}
             value={formData.deductible}
             onChange={(e) => update("deductible", e.target.value)}
             options={DEDUCTIBLE_OPTIONS}
@@ -313,7 +319,7 @@ export default function VehicleForm() {
 
       <div className="flex justify-end">
         <Button type="submit" variant="accent" size="lg" disabled={loading}>
-          {loading ? "Wird gespeichert..." : "Weiter →"}
+          {loading ? dict.common.saving : t.submit}
         </Button>
       </div>
     </form>

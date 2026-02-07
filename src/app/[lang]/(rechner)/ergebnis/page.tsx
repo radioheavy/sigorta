@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import TariffList from "@/components/tariff/TariffList";
 import TariffFilters from "@/components/tariff/TariffFilters";
 import TariffSkeleton from "@/components/tariff/TariffSkeleton";
+import { isValidLocale, type Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n";
 
 export interface TariffResultData {
   id: string;
@@ -16,7 +18,24 @@ export interface TariffResultData {
   sourceAdapter: string;
 }
 
-export default function ErgebnisPage() {
+// Since this is a client component, we load the dict client-side
+function useDictionary(lang: Locale): Dictionary | null {
+  const [dict, setDict] = useState<Dictionary | null>(null);
+  useEffect(() => {
+    import(`@/i18n/dictionaries/${lang}.json`).then((m) => setDict(m.default));
+  }, [lang]);
+  return dict;
+}
+
+export default function ErgebnisPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang: rawLang } = use(params);
+  const lang = isValidLocale(rawLang) ? rawLang : "de";
+  const dict = useDictionary(lang as Locale);
+
   const [results, setResults] = useState<TariffResultData[]>([]);
   const [filtered, setFiltered] = useState<TariffResultData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,19 +56,19 @@ export default function ErgebnisPage() {
         });
         if (!res.ok) {
           const data = await res.json();
-          throw new Error(data.error || "Fehler beim Laden der Tarife");
+          throw new Error(data.error || (dict?.results.errorLoading ?? "Error"));
         }
         const data = await res.json();
         setResults(data.results);
         setFiltered(data.results);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unbekannter Fehler");
+        setError(err instanceof Error ? err.message : (dict?.results.unknownError ?? "Error"));
       } finally {
         setLoading(false);
       }
     }
     fetchTariffs();
-  }, []);
+  }, [dict]);
 
   useEffect(() => {
     let list = [...results];
@@ -76,16 +95,18 @@ export default function ErgebnisPage() {
     setFiltered(list);
   }, [filters, results]);
 
+  if (!dict) return <TariffSkeleton />;
+
   const providers = [...new Set(results.map((r) => r.provider))];
 
   return (
     <div>
       <div className="border-b-4 border-black pb-4 mb-8">
         <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter">
-          Tarifergebnisse
+          {dict.results.title}
         </h1>
         <p className="text-xs text-gray-600 mt-2 uppercase tracking-wider">
-          Schritt 3 von 4 — {loading ? "Laden..." : `${filtered.length} Tarife gefunden`}
+          {dict.results.stepInfo} — {loading ? dict.results.loading : `${filtered.length} ${dict.results.found}`}
         </p>
       </div>
 
@@ -95,7 +116,7 @@ export default function ErgebnisPage() {
         <div className="border-4 border-red-600 p-6 bg-red-50">
           <p className="font-bold text-red-600 uppercase text-sm">{error}</p>
           <p className="text-xs mt-2 text-gray-600">
-            Bitte gehen Sie zurück und überprüfen Sie Ihre Eingaben.
+            {dict.results.errorGoBack}
           </p>
         </div>
       ) : (
@@ -105,10 +126,11 @@ export default function ErgebnisPage() {
               filters={filters}
               onFilterChange={setFilters}
               providers={providers}
+              dict={dict}
             />
           </div>
           <div className="lg:col-span-3">
-            <TariffList results={filtered} />
+            <TariffList results={filtered} lang={lang} dict={dict} />
           </div>
         </div>
       )}

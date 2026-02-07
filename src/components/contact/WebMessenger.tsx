@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import type { Dictionary } from "@/i18n";
 
 interface Message {
   id: string;
@@ -11,13 +12,13 @@ interface Message {
   createdAt: string;
 }
 
-export default function WebMessenger() {
+export default function WebMessenger({ dict }: { dict: Dictionary }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const t = dict.messenger;
 
-  // Polling for new messages
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -51,7 +52,6 @@ export default function WebMessenger() {
 
       if (res.ok) {
         setInput("");
-        // Immediately fetch messages
         const msgs = await fetch("/api/messenger");
         const data = await msgs.json();
         setMessages(data.messages || []);
@@ -68,7 +68,7 @@ export default function WebMessenger() {
       {/* Header */}
       <div className="border-b-4 border-black p-3 bg-black text-white">
         <p className="text-xs font-bold uppercase tracking-wider">
-          Web Messenger
+          {t.title}
         </p>
       </div>
 
@@ -76,7 +76,7 @@ export default function WebMessenger() {
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (
           <p className="text-xs text-gray-400 text-center uppercase tracking-wider">
-            Schreiben Sie Ihre erste Nachricht
+            {t.emptyState}
           </p>
         )}
         {messages.map((msg) => (
@@ -96,7 +96,7 @@ export default function WebMessenger() {
               <p className="text-xs">{msg.content}</p>
             </div>
             <p className="text-[10px] text-gray-400 mt-1">
-              {msg.sender === "user" ? "Sie" : "Berater"} &middot;{" "}
+              {msg.sender === "user" ? t.you : t.advisor} &middot;{" "}
               {new Date(msg.createdAt).toLocaleTimeString("de-DE", {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -113,7 +113,7 @@ export default function WebMessenger() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Nachricht eingeben..."
+          placeholder={t.placeholder}
           className="border-2 py-2 text-xs"
         />
         <Button
@@ -122,7 +122,7 @@ export default function WebMessenger() {
           variant="accent"
           size="sm"
         >
-          {sending ? "..." : "Senden"}
+          {sending ? dict.common.sending : dict.common.send}
         </Button>
       </div>
     </div>

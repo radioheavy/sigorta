@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Button from "@/components/ui/Button";
+import type { Dictionary } from "@/i18n";
 
 interface ConsentState {
   necessary: boolean;
@@ -9,7 +10,7 @@ interface ConsentState {
   analytics: boolean;
 }
 
-export default function CookieBanner() {
+export default function CookieBanner({ dict }: { dict: Dictionary }) {
   const [visible, setVisible] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [consent, setConsent] = useState<ConsentState>({
@@ -19,7 +20,6 @@ export default function CookieBanner() {
   });
 
   useEffect(() => {
-    // Check if consent was already given
     fetch("/api/consent")
       .then((res) => res.json())
       .then((data) => {
@@ -57,17 +57,18 @@ export default function CookieBanner() {
 
   if (!visible) return null;
 
+  const t = dict.cookie;
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t-4 border-black bg-black text-white p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex-1">
             <p className="font-bold uppercase text-xs tracking-wider mb-2">
-              Cookie-Einstellungen
+              {t.title}
             </p>
             <p className="text-xs text-gray-400 leading-relaxed">
-              Wir verwenden Cookies, um Ihnen die bestmögliche Erfahrung zu
-              bieten. Technisch notwendige Cookies sind immer aktiv.
+              {t.description}
             </p>
           </div>
 
@@ -79,7 +80,7 @@ export default function CookieBanner() {
                 className="text-white border-white hover:border-accent"
                 onClick={() => setShowDetails(true)}
               >
-                Einstellungen
+                {t.settings}
               </Button>
               <Button
                 variant="secondary"
@@ -87,10 +88,10 @@ export default function CookieBanner() {
                 className="border-white text-white hover:bg-white hover:text-black"
                 onClick={rejectAll}
               >
-                Alle ablehnen
+                {t.rejectAll}
               </Button>
               <Button variant="accent" size="sm" onClick={acceptAll}>
-                Alle akzeptieren
+                {t.acceptAll}
               </Button>
             </div>
           ) : (
@@ -104,9 +105,9 @@ export default function CookieBanner() {
                     className="accent-accent"
                   />
                   <span className="uppercase tracking-wider font-bold">
-                    Notwendig
+                    {t.necessary}
                   </span>
-                  <span className="text-gray-400">(Immer aktiv)</span>
+                  <span className="text-gray-400">({t.alwaysActive})</span>
                 </label>
                 <label className="flex items-center gap-2 text-xs cursor-pointer">
                   <input
@@ -121,7 +122,7 @@ export default function CookieBanner() {
                     className="accent-accent"
                   />
                   <span className="uppercase tracking-wider font-bold">
-                    Funktional
+                    {t.functional}
                   </span>
                 </label>
                 <label className="flex items-center gap-2 text-xs cursor-pointer">
@@ -137,7 +138,7 @@ export default function CookieBanner() {
                     className="accent-accent"
                   />
                   <span className="uppercase tracking-wider font-bold">
-                    Analyse
+                    {t.analytics}
                   </span>
                 </label>
               </div>
@@ -148,14 +149,14 @@ export default function CookieBanner() {
                   className="border-white text-white hover:bg-white hover:text-black"
                   onClick={rejectAll}
                 >
-                  Alle ablehnen
+                  {t.rejectAll}
                 </Button>
                 <Button
                   variant="accent"
                   size="sm"
                   onClick={confirmSelection}
                 >
-                  Auswahl bestätigen
+                  {t.confirmSelection}
                 </Button>
               </div>
             </div>

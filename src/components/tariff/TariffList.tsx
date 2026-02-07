@@ -1,6 +1,7 @@
 "use client";
 
 import TariffCard from "./TariffCard";
+import type { Dictionary } from "@/i18n";
 
 interface TariffResult {
   id: string;
@@ -14,17 +15,21 @@ interface TariffResult {
 
 interface TariffListProps {
   results: TariffResult[];
+  lang: string;
+  dict: Dictionary;
 }
 
-export default function TariffList({ results }: TariffListProps) {
+export default function TariffList({ results, lang, dict }: TariffListProps) {
+  const t = dict.tariff;
+
   if (results.length === 0) {
     return (
       <div className="border-4 border-black p-8 text-center">
         <p className="font-bold uppercase text-sm">
-          Keine Tarife gefunden
+          {t.noResults}
         </p>
         <p className="text-xs text-gray-500 mt-2">
-          Bitte passen Sie Ihre Filter an.
+          {t.noResultsHint}
         </p>
       </div>
     );
@@ -37,11 +42,11 @@ export default function TariffList({ results }: TariffListProps) {
           {index === 0 && (
             <div className="absolute -top-3 left-4 bg-accent px-3 py-0.5 border-2 border-black z-10">
               <span className="text-[10px] font-black uppercase tracking-wider">
-                Günstigster
+                {t.cheapest}
               </span>
             </div>
           )}
-          <TariffCard {...result} />
+          <TariffCard {...result} lang={lang} dict={dict} />
         </div>
       ))}
     </div>

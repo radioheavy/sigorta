@@ -1,40 +1,46 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-
-const INSURANCE_TYPES = [
-  {
-    value: "HAFTPFLICHT",
-    label: "Haftpflicht",
-    description: "Gesetzliche Pflichtversicherung",
-  },
-  {
-    value: "TEILKASKO",
-    label: "Teilkasko",
-    description: "Haftpflicht + Diebstahl, Brand, Glas",
-  },
-  {
-    value: "VOLLKASKO",
-    label: "Vollkasko",
-    description: "Teilkasko + Eigenschäden, Vandalismus",
-  },
-];
+import type { Dictionary } from "@/i18n";
 
 interface InsuranceTypeSelectorProps {
   value: string;
   onChange: (value: string) => void;
   error?: string;
+  dict: Dictionary;
 }
 
 export default function InsuranceTypeSelector({
   value,
   onChange,
   error,
+  dict,
 }: InsuranceTypeSelectorProps) {
+  const t = dict.insurance;
+  const v = dict.vehicle;
+
+  const INSURANCE_TYPES = [
+    {
+      value: "HAFTPFLICHT",
+      label: t.haftpflicht,
+      description: t.haftpflichtDesc,
+    },
+    {
+      value: "TEILKASKO",
+      label: t.teilkasko,
+      description: t.teilkaskoDesc,
+    },
+    {
+      value: "VOLLKASKO",
+      label: t.vollkasko,
+      description: t.vollkaskoDesc,
+    },
+  ];
+
   return (
     <div>
       <label className="block text-xs font-bold uppercase tracking-wider mb-2">
-        Versicherungsart
+        {v.insuranceType}
       </label>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-0">
         {INSURANCE_TYPES.map((type, index) => (

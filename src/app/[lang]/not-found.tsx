@@ -8,13 +8,13 @@ export default function NotFound() {
         <p className="text-8xl font-black mb-4">404</p>
         <div className="border-t-4 border-black pt-6 mt-6">
           <h1 className="text-xl font-bold uppercase tracking-wider mb-2">
-            Seite nicht gefunden
+            Page not found
           </h1>
           <p className="text-xs text-gray-500 mb-6">
-            Die angeforderte Seite existiert nicht oder wurde verschoben.
+            The requested page does not exist.
           </p>
           <Link href="/">
-            <Button variant="accent">← Zur Startseite</Button>
+            <Button variant="accent">← Home</Button>
           </Link>
         </div>
       </div>
